@@ -40,6 +40,31 @@ public class MyDBHandler extends SQLiteOpenHelper {
         String query = "SELECT * FROM " + TABLE_NAME;
         return db.rawQuery(query, null); // returns "cursor" all products from the table
     }
+	
+	public Cursor findProducts(String name, String price) {
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor;
+
+		boolean hasName = name != null && !name.isEmpty();
+		boolean hasPrice = price != null && !price.isEmpty();
+
+		if (hasName && !hasPrice) {
+			// Find by name only (starts with)
+			cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_PRODUCT_NAME + " LIKE ?", new String[]{name + "%"});
+		} else if (!hasName && hasPrice) {
+			// Find by price only (exact)
+			cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_PRODUCT_PRICE + " = ?", new String[]{price});
+		} else if (hasName && hasPrice) {
+			// Find by name and price (both)
+			cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_PRODUCT_NAME + " LIKE ? AND " + COLUMN_PRODUCT_PRICE + " = ?", new String[]{name + "%", price});
+		} else {
+			// Show all
+			cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+		}
+
+		return cursor;
+	}
+
 
     public void addProduct(Product product) {
         SQLiteDatabase db = this.getWritableDatabase();
